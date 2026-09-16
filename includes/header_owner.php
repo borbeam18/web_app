@@ -117,6 +117,9 @@ $activePage = $activePage ?? '';
       </div>
     </div>
     <div class="flex items-center gap-3 pl-4 border-l border-slate-200">
+      <?php if (isset($_SESSION['available_roles']['technician'])): ?>
+      <a href="/web_app/api/switch_role.php?role=technician" class="hidden sm:inline-flex rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700">สลับเป็นพนักงาน</a>
+      <?php endif; ?>
       <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-900 to-blue-700 text-white flex items-center justify-center font-bold"><?= mb_substr($me['name'], 0, 1) ?></div>
       <div>
         <div class="font-semibold text-sm text-slate-800"><?= htmlspecialchars($me['name']) ?></div>
