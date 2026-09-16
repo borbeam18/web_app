@@ -70,6 +70,14 @@ function moveUserToRole(PDO $pdo, string $sourceRole, string $targetRole, int $i
     } elseif ($targetRole === 'Owner') {
         $stmt = $pdo->prepare('INSERT INTO Owner (username, password, line_user_id, full_name, phone, shop_name) VALUES (?, ?, ?, ?, ?, ?)');
         $stmt->execute([$username, $password, $lineUserId, $fullName, $contact, $user['shop_name'] ?? 'ร้านเอกเซอร์วิส']);
+
+        // Owner ทุกคนที่ Admin อนุมัติ จะมีบัญชีพนักงานแยกของตัวเองพร้อมสลับบทบาทได้
+        $newOwnerId = (int)$pdo->lastInsertId();
+        $techStmt = $pdo->prepare(
+            "INSERT INTO Technician (owner_id, line_user_id, full_name, phone, specialty, status)
+             VALUES (?, ?, ?, ?, 'งานบริการทั่วไป', 'ว่าง')"
+        );
+        $techStmt->execute([$newOwnerId, $lineUserId, $fullName, $contact]);
     } elseif ($targetRole === 'ช่าง') {
         $stmt = $pdo->prepare('INSERT INTO Technician (line_user_id, full_name, phone, specialty, status) VALUES (?, ?, ?, ?, ?)');
         $stmt->execute([$lineUserId ?? $username, $fullName, $contact, $user['specialty'] ?? null, $user['status'] ?? 'ว่าง']);
