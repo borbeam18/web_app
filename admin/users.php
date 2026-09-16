@@ -51,26 +51,31 @@ function moveUserToRole(PDO $pdo, string $sourceRole, string $targetRole, int $i
         }
     }
 
-    $username = $user['username'] ?? $user['line_user_id'] ?? null;
+    // LINE ID คือเอกลักษณ์ของผู้ใช้ LINE และต้องคงไว้เมื่อ Admin เปลี่ยนบทบาท
+    $lineUserId = $user['line_user_id'] ?? null;
+    $username = $user['username'] ?? $lineUserId;
     $password = $user['password'] ?? null;
-    if (in_array($targetRole, ['Admin', 'Owner'], true) && !$password) {
-        throw new RuntimeException('บัญชีช่าง/ลูกค้ายังไม่มี password จึงเปลี่ยนเป็น Admin หรือ Owner ไม่ได้');
-    }
     $fullName = $user['full_name'];
     $contact = $user['phone'] ?? null;
+
+    // บัญชี LINE ไม่จำเป็นต้องมี Password เมื่อ Admin เปลี่ยนเป็น Owner
+    // แต่บัญชีที่จะเป็น Admin ยังต้องมี Password เพื่อความปลอดภัย
+    if ($targetRole === 'Admin' && !$password) {
+        throw new RuntimeException('บัญชี LINE ยังไม่มี password จึงเปลี่ยนเป็น Admin ไม่ได้');
+    }
 
     if ($targetRole === 'Admin') {
         $stmt = $pdo->prepare('INSERT INTO Admin (username, password, full_name, email, status) VALUES (?, ?, ?, ?, ?)');
         $stmt->execute([$username, $password, $fullName, $user['email'] ?? null, $user['status'] ?? 'Active']);
     } elseif ($targetRole === 'Owner') {
-        $stmt = $pdo->prepare('INSERT INTO Owner (username, password, full_name, phone, shop_name) VALUES (?, ?, ?, ?, ?)');
-        $stmt->execute([$username, $password, $fullName, $contact, $user['shop_name'] ?? 'ร้านเอกเซอร์วิส']);
+        $stmt = $pdo->prepare('INSERT INTO Owner (username, password, line_user_id, full_name, phone, shop_name) VALUES (?, ?, ?, ?, ?, ?)');
+        $stmt->execute([$username, $password, $lineUserId, $fullName, $contact, $user['shop_name'] ?? 'ร้านเอกเซอร์วิส']);
     } elseif ($targetRole === 'ช่าง') {
         $stmt = $pdo->prepare('INSERT INTO Technician (line_user_id, full_name, phone, specialty, status) VALUES (?, ?, ?, ?, ?)');
-        $stmt->execute([$username, $fullName, $contact, $user['specialty'] ?? null, $user['status'] ?? 'ว่าง']);
+        $stmt->execute([$lineUserId ?? $username, $fullName, $contact, $user['specialty'] ?? null, $user['status'] ?? 'ว่าง']);
     } else {
         $stmt = $pdo->prepare('INSERT INTO Customer (line_user_id, full_name, phone, email, address) VALUES (?, ?, ?, ?, ?)');
-        $stmt->execute([$username, $fullName, $contact, $user['email'] ?? null, $user['address'] ?? null]);
+        $stmt->execute([$lineUserId ?? $username, $fullName, $contact, $user['email'] ?? null, $user['address'] ?? null]);
     }
 
     $pdo->prepare("DELETE FROM {$source['table']} WHERE {$source['id']} = ?")->execute([$id]);
@@ -168,12 +173,7 @@ $allUsers = array_merge($admins, $owners, $techs, $customers);
     <button onclick="openModal('addUserModal')" class="btn-accent px-4 py-2 rounded-lg text-sm font-semibold">+ เพิ่มผู้ใช้งาน</button>
   </div>
   <?php if (!empty($msg)): ?><div class="bg-green-50 text-green-700 p-3 rounded mb-4"><?= $msg ?></div><?php endif; ?>
-  <?php if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($err)): ?>
-    <div id="adminError" class="bg-red-50 text-red-700 p-3 rounded mb-4 flex items-center justify-between gap-3">
-      <span><?= htmlspecialchars($err) ?></span>
-      <button type="button" class="text-red-700 text-xl leading-none" onclick="document.getElementById('adminError')?.remove()" aria-label="ปิดข้อความ">×</button>
-    </div>
-  <?php endif; ?>
+  <?php if (!empty($err)): ?><div class="bg-red-50 text-red-700 p-3 rounded mb-4"><?= $err ?></div><?php endif; ?>
   
   <div class="overflow-x-auto">
     <table class="w-full data-table">
