@@ -43,8 +43,14 @@ if ($user = $stmt->fetch()) {
     $roles['owner'] = ['user_id' => (int)$user['user_id'], 'name' => $user['full_name']];
 }
 
-$stmt = $pdo->prepare("SELECT tech_id AS user_id, full_name FROM Technician WHERE line_user_id = ?");
-$stmt->execute([$lineUserId]);
+$techQuery = 'SELECT tech_id AS user_id, full_name FROM Technician WHERE line_user_id = ?';
+$techParams = [$lineUserId];
+if (isset($roles['owner'])) {
+    $techQuery = 'SELECT tech_id AS user_id, full_name FROM Technician WHERE owner_id = ? LIMIT 1';
+    $techParams = [$roles['owner']['user_id']];
+}
+$stmt = $pdo->prepare($techQuery);
+$stmt->execute($techParams);
 if ($user = $stmt->fetch()) {
     $roles['technician'] = ['user_id' => (int)$user['user_id'], 'name' => $user['full_name']];
 }
