@@ -59,11 +59,12 @@ try {
     if ($user) {
         $_SESSION['user_id']   = $user['tech_id'];
         $_SESSION['role']      = 'technician';
+        $_SESSION['auth_method'] = 'password';
         $_SESSION['user_name'] = $user['full_name'];
         echo json_encode([
             'success'  => true,
             'role'     => 'technician',
-            'redirect' => '/web_app/customer/dashboard.php'
+            'redirect' => '/web_app/technician/dashboard.php'
         ]);
         exit;
     }
@@ -75,6 +76,7 @@ try {
     if ($user && !empty($user['password']) && password_verify($password, $user['password'])) {
         $_SESSION['user_id']   = $user['customer_id'];
         $_SESSION['role']      = 'customer';
+        $_SESSION['auth_method'] = 'password';
         $_SESSION['user_name'] = $user['full_name'];
         echo json_encode([
             'success'  => true,
