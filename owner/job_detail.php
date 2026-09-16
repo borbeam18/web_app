@@ -2,13 +2,13 @@
 ob_start();
 $pageTitle = 'รายละเอียดงาน';
 $activePage = 'jobDetail';
-require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/../includes/auth.php';
 requireRole('owner');
 $flashStatus = $_SESSION['status_flash'] ?? null;
 unset($_SESSION['status_flash']);
 
 $bookingId = (int)($_GET['id'] ?? 0);
-if (!$bookingId) { header('Location: /web_app/owner_jobs.php'); exit; }
+if (!$bookingId) { header('Location: /web_app/owner/jobs.php'); exit; }
 
 // Fetch booking
 $stmt = $pdo->prepare("
@@ -82,7 +82,7 @@ if (statusModal) {
     <div class="text-sm text-slate-500 mt-1">รหัสงาน: #<?= $job['booking_id'] ?> • วันที่นัดหมาย: <?= $job['booking_date'] ?>, <?= substr($job['booking_time'],0,5) ?> น.</div>
   </div>
   <div class="flex items-center gap-2">
-    <a href="/web_app/owner_jobs.php" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">← ย้อนกลับ</a>
+    <a href="/web_app/owner/jobs.php" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">← ย้อนกลับ</a>
     <form method="POST" class="flex gap-2" onsubmit="this.querySelector('button[type=submit]').disabled = true; this.querySelector('button[type=submit]').textContent = 'กำลังบันทึก...';">
       <input type="hidden" name="action" value="update_status">
       <select name="status_service" class="px-3 py-2 border border-slate-300 rounded-lg text-sm">
