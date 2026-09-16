@@ -15,7 +15,7 @@ $customers = $stmt->fetchAll();
 
 <div class="card p-6">
   <form method="GET" class="flex items-center justify-between mb-5 flex-wrap gap-3">
-    <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="ค้นหาชื่อ, เบอร์โทร..." class="px-4 py-2 border border-slate-300 rounded-lg w-72 text-sm outline-none" />
+    <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="ค้นหาชื่อ, เบอร์โทร..." class="px-4 py-2 border border-slate-300 rounded-lg w-full sm:w-72 text-sm outline-none" />
     <button class="btn-accent px-4 py-2 rounded-lg text-sm font-semibold">ค้นหา</button>
   </form>
   <div class="overflow-x-auto">
