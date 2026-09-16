@@ -44,6 +44,26 @@ try {
         $_SESSION['user_id']   = $user['owner_id'];
         $_SESSION['role']      = 'owner';
         $_SESSION['user_name'] = $user['full_name'];
+        $_SESSION['auth_method'] = 'password';
+        $_SESSION['available_roles'] = [
+            'owner' => [
+                'user_id' => (int)$user['owner_id'],
+                'name' => $user['full_name'],
+            ],
+        ];
+
+        // ถ้า Owner มีบัญชีช่างที่ผูกกับ LINE ID เดียวกัน ให้สลับเป็นช่างได้
+        if (!empty($user['line_user_id'])) {
+            $techStmt = $pdo->prepare('SELECT tech_id, full_name FROM Technician WHERE line_user_id = ?');
+            $techStmt->execute([$user['line_user_id']]);
+            if ($technician = $techStmt->fetch()) {
+                $_SESSION['available_roles']['technician'] = [
+                    'user_id' => (int)$technician['tech_id'],
+                    'name' => $technician['full_name'],
+                ];
+            }
+        }
+
         echo json_encode([
             'success'  => true,
             'role'     => 'owner',
@@ -61,6 +81,25 @@ try {
         $_SESSION['role']      = 'technician';
         $_SESSION['auth_method'] = 'password';
         $_SESSION['user_name'] = $user['full_name'];
+        $_SESSION['available_roles'] = [
+            'technician' => [
+                'user_id' => (int)$user['tech_id'],
+                'name' => $user['full_name'],
+            ],
+        ];
+
+        // ถ้าช่างมี Owner ที่ใช้ LINE ID เดียวกัน ให้สลับกลับเป็น Owner ได้
+        if (!empty($user['line_user_id'])) {
+            $ownerStmt = $pdo->prepare('SELECT owner_id, full_name FROM Owner WHERE line_user_id = ?');
+            $ownerStmt->execute([$user['line_user_id']]);
+            if ($owner = $ownerStmt->fetch()) {
+                $_SESSION['available_roles']['owner'] = [
+                    'user_id' => (int)$owner['owner_id'],
+                    'name' => $owner['full_name'],
+                ];
+            }
+        }
+
         echo json_encode([
             'success'  => true,
             'role'     => 'technician',
