@@ -30,6 +30,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+<?php if ($success): ?>
+<script>
+  alert('สมัครสมาชิกสำเร็จ กรุณาเข้าสู่ระบบ');
+  window.location.href = '/web_app/user/login.php';
+</script>
+<?php endif; ?>
 <!DOCTYPE html>
 <html lang="th">
 <head>
