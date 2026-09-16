@@ -3,6 +3,10 @@ require_once __DIR__ . '/../includes/auth.php';
 requireLogin();
 
 $user = currentUser();
+if (($user['auth_method'] ?? 'password') === 'line') {
+    http_response_code(403);
+    exit('บัญชีที่เข้าสู่ระบบผ่าน LINE ไม่มีรหัสผ่านในระบบ จึงไม่ต้องเปลี่ยนรหัสผ่าน');
+}
 $table = $user['role'] === 'admin' ? 'Admin' : ($user['role'] === 'owner' ? 'Owner' : null);
 $idColumn = $user['role'] === 'admin' ? 'admin_id' : 'owner_id';
 $message = '';
