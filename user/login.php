@@ -86,7 +86,7 @@ async function submitLineLogin(accessToken) {
   });
   const data = await response.json();
   if (!data.success) {
-    if (data.code === 'not_linked' && data.redirect) {
+    if ((data.code === 'choose_role' || data.code === 'not_linked') && data.redirect) {
       window.location.href = data.redirect;
       return;
     }
