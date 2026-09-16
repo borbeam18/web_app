@@ -3,7 +3,6 @@
 require_once __DIR__ . '/../config/db.php';
 
 header('Content-Type: application/json; charset=utf-8');
-
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['success' => false, 'message' => 'Method not allowed']);
@@ -12,7 +11,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $input = json_decode(file_get_contents('php://input'), true) ?? [];
 $accessToken = trim($input['access_token'] ?? '');
-
 if ($accessToken === '') {
     echo json_encode(['success' => false, 'message' => 'ไม่พบข้อมูลการเข้าสู่ระบบ LINE']);
     exit;
@@ -28,8 +26,8 @@ curl_setopt_array($ch, [
 $response = curl_exec($ch);
 $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
-
 $profile = json_decode($response ?: '', true);
+
 if ($httpCode !== 200 || empty($profile['userId'])) {
     echo json_encode(['success' => false, 'message' => 'ยืนยันตัวตนกับ LINE ไม่สำเร็จ']);
     exit;
@@ -37,45 +35,57 @@ if ($httpCode !== 200 || empty($profile['userId'])) {
 
 $lineUserId = $profile['userId'];
 $displayName = trim($profile['displayName'] ?? 'ลูกค้า LINE');
-$stmt = $pdo->prepare('SELECT tech_id AS user_id, full_name, "technician" AS role FROM Technician WHERE line_user_id = ?');
-$stmt->execute([$lineUserId]);
-$user = $stmt->fetch();
+$roles = [];
 
-if (!$user) {
-    $stmt = $pdo->prepare('SELECT customer_id AS user_id, full_name, "customer" AS role FROM Customer WHERE line_user_id = ?');
-    $stmt->execute([$lineUserId]);
-    $user = $stmt->fetch();
+$stmt = $pdo->prepare("SELECT owner_id AS user_id, full_name FROM Owner WHERE line_user_id = ?");
+$stmt->execute([$lineUserId]);
+if ($user = $stmt->fetch()) {
+    $roles['owner'] = ['user_id' => (int)$user['user_id'], 'name' => $user['full_name']];
 }
 
-if ($user && $user['role'] === 'customer') {
-    if ($user['full_name'] === 'ลูกค้า LINE' && $displayName !== '') {
-        $pdo->prepare('UPDATE Customer SET full_name = ? WHERE customer_id = ?')
-            ->execute([$displayName, $user['user_id']]);
-        $user['full_name'] = $displayName;
+$stmt = $pdo->prepare("SELECT tech_id AS user_id, full_name FROM Technician WHERE line_user_id = ?");
+$stmt->execute([$lineUserId]);
+if ($user = $stmt->fetch()) {
+    $roles['technician'] = ['user_id' => (int)$user['user_id'], 'name' => $user['full_name']];
+}
+
+// ถ้า LINE ID เป็น Owner หรือช่างอยู่แล้ว จะไม่ดึง/สร้างบทบาท Customer ซ้ำ
+if (!isset($roles['owner']) && !isset($roles['technician'])) {
+    $stmt = $pdo->prepare("SELECT customer_id AS user_id, full_name FROM Customer WHERE line_user_id = ?");
+    $stmt->execute([$lineUserId]);
+    if ($user = $stmt->fetch()) {
+        $roles['customer'] = ['user_id' => (int)$user['user_id'], 'name' => $user['full_name']];
     }
 }
 
-if (!$user) {
-    // ลูกค้าใหม่เข้าใช้งานผ่าน LINE ได้ทันที โดยสร้างบัญชี Customer อัตโนมัติ
+if (!$roles) {
     $stmt = $pdo->prepare(
         'INSERT INTO Customer (line_user_id, full_name, phone, email, password, address)
          VALUES (?, ?, NULL, NULL, NULL, NULL)'
     );
     $stmt->execute([$lineUserId, $displayName]);
-    $user = [
+    $roles['customer'] = [
         'user_id' => (int)$pdo->lastInsertId(),
-        'full_name' => $displayName,
-        'role' => 'customer',
+        'name' => $displayName,
     ];
 }
 
-$_SESSION['user_id'] = (int)$user['user_id'];
-$_SESSION['role'] = $user['role'];
+$_SESSION['available_roles'] = $roles;
+
+// ถ้ามี Owner ให้เข้า Owner Dashboard เป็นค่าเริ่มต้น
+// และคงบทบาท Technician ไว้สำหรับปุ่มสลับบทบาท
+$role = isset($roles['owner']) ? 'owner' : array_key_first($roles);
+$_SESSION['user_id'] = $roles[$role]['user_id'];
+$_SESSION['role'] = $role;
 $_SESSION['auth_method'] = 'line';
-$_SESSION['user_name'] = $user['full_name'];
+$_SESSION['line_display_name'] = $displayName;
+// ใช้ชื่อจากฐานข้อมูลตามบทบาท ไม่ใช้ Display Name จาก LINE เป็นชื่อในระบบ
+$_SESSION['user_name'] = $roles[$role]['name'];
 
-$redirect = $user['role'] === 'technician'
-    ? '/web_app/technician/dashboard.php'
-    : '/web_app/customer/dashboard.php';
+$redirect = match ($role) {
+    'owner' => '/web_app/owner/dashboard.php',
+    'technician' => '/web_app/technician/dashboard.php',
+    default => '/web_app/customer/dashboard.php',
+};
 
-echo json_encode(['success' => true, 'role' => $user['role'], 'redirect' => $redirect]);
+echo json_encode(['success' => true, 'role' => $role, 'redirect' => $redirect]);
