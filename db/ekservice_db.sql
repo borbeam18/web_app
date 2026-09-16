@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 15, 2026 at 04:03 PM
+-- Generation Time: Sep 16, 2026 at 06:47 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -96,8 +96,7 @@ CREATE TABLE `customer` (
 --
 
 INSERT INTO `customer` (`customer_id`, `line_user_id`, `full_name`, `phone`, `email`, `password`, `address`, `latitude`, `longitude`, `created_at`) VALUES
-(1, 'U8bd23c1000000000000000000000000', 'สมหญิง รักดี', '089-876-5432', 'som@gmail.com', NULL, '12 ถ.นิมมานเหมินท์ ต.สุเทพ อ.เมือง จ.เชียงใหม่', 18.796143, 98.979263, '2026-09-15 18:42:26'),
-(3, '', 'ภควัฒน์ วันดี', '096 695 3094', 'borbeam188@gmail.com', '$2y$10$tUx/cXM/UUYZv4CzoMfm.eTkDsODbZI6MdlGDn5tDBddRrQ0Ndhw.', '133 ถนน เจริญประเทศ', NULL, NULL, '2026-09-15 20:10:52');
+(1, 'U8bd23c1000000000000000000000000', 'สมหญิง รักดี', '089-876-5432', 'som@gmail.com', NULL, '12 ถ.นิมมานเหมินท์ ต.สุเทพ อ.เมือง จ.เชียงใหม่', 18.796143, 98.979263, '2026-09-15 18:42:26');
 
 -- --------------------------------------------------------
 
@@ -159,7 +158,8 @@ CREATE TABLE `owner` (
 --
 
 INSERT INTO `owner` (`owner_id`, `username`, `password`, `line_user_id`, `full_name`, `phone`, `shop_name`, `created_at`) VALUES
-(1, 'owner01', '$2y$10$fzUnUx8cWs9aJl2fT6IOReElMNheDdD/DBC/p5yjnXBDhvzbd3/8i', 'U4af4980000000000000000000000000', 'ณัฐพล วันดี', '081-234-5678', 'ร้านเอกเซอร์วิส', '2026-09-15 18:42:26');
+(1, 'owner', '$2y$10$fzUnUx8cWs9aJl2fT6IOReElMNheDdD/DBC/p5yjnXBDhvzbd3/8i', 'U4af4980000000000000000000000000', 'ณัฐพล วันดี', '081-234-5678', 'ร้านเอกเซอร์วิส', '2026-09-15 18:42:26'),
+(4, 'U3e45839fc1df6f5b1b866b18cef70bc3', NULL, 'U3e45839fc1df6f5b1b866b18cef70bc3', 'bb_18', NULL, 'ร้านเอกเซอร์วิส', '2026-09-16 23:36:50');
 
 -- --------------------------------------------------------
 
@@ -209,6 +209,7 @@ INSERT INTO `services` (`service_id`, `service_name`, `category`, `base_price`, 
 
 CREATE TABLE `technician` (
   `tech_id` int(11) NOT NULL,
+  `owner_id` int(11) DEFAULT NULL,
   `line_user_id` varchar(50) DEFAULT NULL,
   `full_name` varchar(100) NOT NULL,
   `phone` varchar(15) DEFAULT NULL,
@@ -221,9 +222,11 @@ CREATE TABLE `technician` (
 -- Dumping data for table `technician`
 --
 
-INSERT INTO `technician` (`tech_id`, `line_user_id`, `full_name`, `phone`, `specialty`, `status`, `created_at`) VALUES
-(1, 'U9fe4471000000000000000000000000', 'วิชัย ช่างเก่ง', '086-111-2233', 'ไฟฟ้า, เครื่องปรับอากาศ', 'ว่าง', '2026-09-15 18:42:26'),
-(2, 'U9fe4472000000000000000000000000', 'สมศักดิ์ ช่างมือทอง', '086-222-3344', 'ประปา, งานทั่วไป', 'ว่าง', '2026-09-15 18:42:26');
+INSERT INTO `technician` (`tech_id`, `owner_id`, `line_user_id`, `full_name`, `phone`, `specialty`, `status`, `created_at`) VALUES
+(1, NULL, 'U9fe4471000000000000000000000000', 'วิชัย ช่างเก่ง', '086-111-2233', 'ไฟฟ้า, เครื่องปรับอากาศ', 'ว่าง', '2026-09-15 18:42:26'),
+(2, NULL, 'U9fe4472000000000000000000000000', 'สมศักดิ์ ช่างมือทอง', '086-222-3344', 'ประปา, งานทั่วไป', 'ว่าง', '2026-09-15 18:42:26'),
+(5, 4, 'U3e45839fc1df6f5b1b866b18cef70bc3', 'bb_18', NULL, 'งานบริการทั่วไป', 'ว่าง', '2026-09-16 23:38:47'),
+(6, 1, 'U4af4980000000000000000000000000', 'ณัฐพล วันดี', '081-234-5678', 'งานบริการทั่วไป', 'ว่าง', '2026-09-16 23:40:55');
 
 --
 -- Indexes for dumped tables
@@ -305,7 +308,7 @@ ALTER TABLE `technician`
 -- AUTO_INCREMENT for table `admin`
 --
 ALTER TABLE `admin`
-  MODIFY `admin_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `admin_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `booking`
@@ -317,7 +320,7 @@ ALTER TABLE `booking`
 -- AUTO_INCREMENT for table `customer`
 --
 ALTER TABLE `customer`
-  MODIFY `customer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `customer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `expense`
@@ -335,7 +338,7 @@ ALTER TABLE `job_material`
 -- AUTO_INCREMENT for table `owner`
 --
 ALTER TABLE `owner`
-  MODIFY `owner_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `owner_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `payment`
@@ -353,7 +356,7 @@ ALTER TABLE `services`
 -- AUTO_INCREMENT for table `technician`
 --
 ALTER TABLE `technician`
-  MODIFY `tech_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `tech_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- Constraints for dumped tables
