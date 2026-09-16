@@ -132,6 +132,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($action === 'delete') {
             $role = $_POST['role'];
             $id   = (int)$_POST['id'];
+            if ($id <= 0) {
+                throw new RuntimeException('รหัสผู้ใช้งานไม่ถูกต้อง');
+            }
             if ($role === 'admin') {
                 $pdo->prepare("DELETE FROM Admin WHERE admin_id = ?")->execute([$id]);
             } elseif ($role === 'owner') {
@@ -155,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $admins = $pdo->query("SELECT admin_id AS id, username, full_name, 'Admin' AS role, email AS contact, status, '' AS shop_name, '' AS specialty, '' AS address FROM Admin")->fetchAll();
 $owners = $pdo->query("SELECT owner_id AS id, username, full_name, 'Owner' AS role, phone AS contact, 'Active' AS status, shop_name, '' AS specialty, '' AS address FROM Owner")->fetchAll();
 $techs  = $pdo->query("SELECT tech_id AS id, line_user_id AS username, full_name, 'ช่าง' AS role, phone AS contact, status, '' AS shop_name, specialty, '' AS address FROM Technician")->fetchAll();
-$customers = $pdo->query("SELECT customer_id AS id, line_user_id AS username, full_name, 'ลูกค้า' AS role, phone AS contact, 'Active' AS status, '' AS shop_name, '' AS specialty, address FROM Customer")->fetchAll();
+$customers = $pdo->query("SELECT customer_id AS id, line_user_id AS username, full_name, 'ลูกค้า' AS role, phone AS contact, email, 'Active' AS status, '' AS shop_name, '' AS specialty, address FROM Customer")->fetchAll();
 $allUsers = array_merge($admins, $owners, $techs, $customers);
 ?>
 
@@ -182,10 +185,11 @@ $allUsers = array_merge($admins, $owners, $techs, $customers);
           <td class="p-3 text-sm"><?= htmlspecialchars($u['contact'] ?? '-') ?></td>
           <td class="p-3"><span class="badge badge-green"><?= $u['status'] ?></span></td>
           <td class="p-3">
+            <button type="button" class="text-blue-700 hover:underline text-sm mr-3" onclick='openEditUser(<?= json_encode($u, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>)'>แก้ไข</button>
             <?php if ($u['role'] !== 'Admin'): ?>
             <form method="POST" onsubmit="return confirm('ยืนยันการลบ?')" style="display:inline">
               <input type="hidden" name="action" value="delete">
-              <input type="hidden" name="role" value="<?= $u['role']==='Owner'?'owner':'tech' ?>">
+              <input type="hidden" name="role" value="<?= $u['role']==='Owner' ? 'owner' : ($u['role']==='ช่าง' ? 'tech' : 'customer') ?>">
               <input type="hidden" name="id" value="<?= $u['id'] ?>">
               <button class="text-red-600 hover:underline text-sm">ลบ</button>
             </form>
@@ -224,7 +228,6 @@ $allUsers = array_merge($admins, $owners, $techs, $customers);
       <div><label class="block text-sm font-medium mb-1">ชื่อ-นามสกุล</label><input name="full_name" id="editUserFullName" required class="w-full px-3 py-2 border border-slate-300 rounded-lg"></div>
       <div><label class="block text-sm font-medium mb-1" id="editContactLabel">อีเมล / เบอร์โทร</label><input name="contact" id="editUserContact" class="w-full px-3 py-2 border border-slate-300 rounded-lg"></div>
       <div id="editEmailGroup"><label class="block text-sm font-medium mb-1">Email</label><input name="email" id="editUserEmail" type="email" class="w-full px-3 py-2 border border-slate-300 rounded-lg"></div>
-      <div id="editEmailGroup"><label class="block text-sm font-medium mb-1">Email</label><input name="email" id="editUserEmail" type="email" class="w-full px-3 py-2 border border-slate-300 rounded-lg"></div>
       <div id="editShopGroup"><label class="block text-sm font-medium mb-1">ชื่อร้าน</label><input name="shop_name" id="editShopName" class="w-full px-3 py-2 border border-slate-300 rounded-lg"></div>
       <div id="editSpecialtyGroup"><label class="block text-sm font-medium mb-1">ความถนัด</label><input name="specialty" id="editSpecialty" class="w-full px-3 py-2 border border-slate-300 rounded-lg"></div>
       <div id="editAddressGroup"><label class="block text-sm font-medium mb-1">ที่อยู่</label><textarea name="address" id="editAddress" rows="3" class="w-full px-3 py-2 border border-slate-300 rounded-lg"></textarea></div>
@@ -259,6 +262,7 @@ function openEditUser(user) {
   document.getElementById('editUserUsername').value = user.username || '';
   document.getElementById('editUserFullName').value = user.full_name || '';
   document.getElementById('editUserContact').value = user.contact || '';
+  document.getElementById('editUserEmail').value = user.email || '';
   document.getElementById('editShopName').value = user.shop_name || '';
   document.getElementById('editSpecialty').value = user.specialty || '';
   document.getElementById('editAddress').value = user.address || '';
