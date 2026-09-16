@@ -1,10 +1,12 @@
 <?php
 session_start();
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
 if (isset($_SESSION['role'])) {
     $redirect = match($_SESSION['role']) {
         'admin'      => '/web_app/admin/users.php',
         'owner'      => '/web_app/owner/dashboard.php',
-        'technician' => '/web_app/customer/dashboard.php',
+        'technician' => '/web_app/technician/dashboard.php',
         'customer'   => '/web_app/customer/dashboard.php',
         default      => '/web_app/user/login.php',
     };
@@ -19,6 +21,7 @@ if (isset($_SESSION['role'])) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>เข้าสู่ระบบ - ร้านเอกเซอร์วิส</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/kanit@5.0.0/thai-400.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/kanit@5.0.0/thai-600.css" />
 <style>
@@ -44,20 +47,20 @@ if (isset($_SESSION['role'])) {
         <label class="block text-sm font-medium text-slate-700 mb-1">ชื่อผู้ใช้</label>
         <input id="loginUser" name="username" type="text" required
                class="w-full px-4 py-3 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-900"
-               placeholder="กรอกชื่อผู้ใช้" />
+               placeholder="กรุณากรอก email" />
       </div>
       <div>
         <label class="block text-sm font-medium text-slate-700 mb-1">รหัสผ่าน</label>
         <input id="loginPass" name="password" type="password" required
                class="w-full px-4 py-3 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-900"
-               placeholder="กรอกรหัสผ่าน" />
+               placeholder="กรุณากรอกรหัสผ่าน" />
       </div>
       <div id="errorMsg" class="hidden text-sm text-red-600 bg-red-50 p-3 rounded-lg"></div>
       <button type="submit" id="submitBtn"
               class="w-full btn-accent py-3 rounded-lg font-semibold hover:opacity-90 transition">
         เข้าสู่ระบบ
       </button>
-      <button type="button"
+      <button type="button" id="lineLoginBtn"
               class="w-full bg-green-500 text-white py-3 rounded-lg font-semibold hover:bg-green-600 transition flex items-center justify-center gap-2">
         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.03 2 11c0 2.76 1.36 5.23 3.5 6.86V22l3.74-2.06c.88.24 1.81.37 2.76.37 5.52 0 10-4.03 10-9S17.52 2 12 2z"/></svg>
         เข้าสู่ระบบผ่าน LINE
@@ -69,16 +72,38 @@ if (isset($_SESSION['role'])) {
   </div>
 
 <script>
-document.getElementById('loginForm').addEventListener('submit', async e => {
-  e.preventDefault();
-  const btn = document.getElementById('submitBtn');
-  const err = document.getElementById('errorMsg');
-  btn.disabled = true;
-  btn.textContent = 'กำลังเข้าสู่ระบบ...';
-  err.classList.add('hidden');
+const errorMessage = document.getElementById('errorMsg');
+const showError = message => {
+  errorMessage.textContent = message;
+  errorMessage.classList.remove('hidden');
+};
+
+async function submitLineLogin(accessToken) {
+  const response = await fetch('../api/line_login.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ access_token: accessToken })
+  });
+  const data = await response.json();
+  if (!data.success) {
+    if (data.code === 'not_linked' && data.redirect) {
+      window.location.href = data.redirect;
+      return;
+    }
+    throw new Error(data.message || 'เข้าสู่ระบบผ่าน LINE ไม่สำเร็จ');
+  }
+  window.location.href = data.redirect;
+}
+
+document.getElementById('loginForm').addEventListener('submit', async event => {
+  event.preventDefault();
+  const button = document.getElementById('submitBtn');
+  button.disabled = true;
+  button.textContent = 'กำลังเข้าสู่ระบบ...';
+  errorMessage.classList.add('hidden');
 
   try {
-    const res = await fetch('../api/login.php', {
+    const response = await fetch('../api/login.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -86,21 +111,39 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
         password: document.getElementById('loginPass').value
       })
     });
-    const data = await res.json();
-    if (data.success) {
-      window.location.href = data.redirect;
-    } else {
-      err.textContent = data.message || 'เข้าสู่ระบบไม่สำเร็จ';
-      err.classList.remove('hidden');
-    }
-  } catch (e) {
-    err.textContent = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
-    err.classList.remove('hidden');
+    const data = await response.json();
+    if (!data.success) throw new Error(data.message || 'เข้าสู่ระบบไม่สำเร็จ');
+    window.location.href = data.redirect;
+  } catch (error) {
+    showError(error.message || 'เกิดข้อผิดพลาดในการเชื่อมต่อ');
   } finally {
-    btn.disabled = false;
-    btn.textContent = 'เข้าสู่ระบบ';
+    button.disabled = false;
+    button.textContent = 'เข้าสู่ระบบ';
+  }
+});
+
+document.getElementById('lineLoginBtn').addEventListener('click', async () => {
+  const button = document.getElementById('lineLoginBtn');
+  button.disabled = true;
+  button.textContent = 'กำลังเชื่อมต่อ LINE...';
+  errorMessage.classList.add('hidden');
+
+  try {
+    await liff.init({ liffId: '2011627827-2s8sq190' });
+    if (!liff.isLoggedIn()) {
+      liff.login();
+      return;
+    }
+    const accessToken = liff.getAccessToken();
+    if (!accessToken) throw new Error('ไม่พบ Access Token จาก LINE');
+    await submitLineLogin(accessToken);
+  } catch (error) {
+    showError(error.message || 'เชื่อมต่อ LINE ไม่สำเร็จ');
+    button.disabled = false;
+    button.textContent = 'เข้าสู่ระบบผ่าน LINE';
   }
 });
 </script>
 </body>
+</html>
 </html>
