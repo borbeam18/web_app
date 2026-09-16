@@ -42,8 +42,30 @@ $activePage = $activePage ?? '';
   .badge-green { background: #d1fae5; color: #065f46; }
   table.data-table th { background: #f8fafc; color: #475569; font-weight: 600; font-size: 13px; }
   table.data-table td { font-size: 14px; color: #334155; }
-  .main-content { margin-left: 256px; }
+  .main-content { margin-left: 256px; min-width: 0; }
+  .mobile-menu-button { display: none !important; pointer-events: none; }
+  .mobile-overlay { display: none; }
   .modal-backdrop { background: rgba(15,23,42,0.5); backdrop-filter: blur(4px); }
+  .modal-panel { max-height: calc(100vh - 2rem); overflow-y: auto; }
+  @media (max-width: 767px) {
+    body { overflow-x: hidden; }
+    .sidebar { width: 280px; max-width: 85vw; transform: translateX(-100%); transition: transform 0.25s ease; z-index: 40; }
+    .sidebar.mobile-open { transform: translateX(0); }
+    .main-content { margin-left: 0; width: 100%; }
+    .mobile-menu-button { display: inline-flex !important; pointer-events: auto; }
+    .mobile-overlay { display: none; }
+    .mobile-overlay.visible { display: block; }
+    .page-content { padding: 1rem !important; }
+    .card { border-radius: 10px; }
+    .stat-card { padding: 1rem; }
+    table.data-table { min-width: 680px; }
+    .calendar-cell { min-height: 72px; }
+    .calendar-event { font-size: 10px; padding: 4px; overflow: hidden; }
+    .modal-panel, .modal-backdrop > div { width: 100%; max-width: none; max-height: calc(100vh - 1rem); border-radius: 1rem; }
+    .grid-cols-2 { grid-template-columns: minmax(0, 1fr) !important; }
+    .page-content > .flex, .page-content .flex.items-center.justify-between { gap: .75rem; }
+    .page-content .overflow-x-auto { max-width: 100%; }
+  }
   .fade-in { animation: fadeIn 0.3s ease; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px);} to { opacity:1; transform: translateY(0);} }
   .scrollbar-thin::-webkit-scrollbar { width: 6px; }
@@ -61,7 +83,8 @@ $activePage = $activePage ?? '';
 </style>
 </head>
 <body>
-<aside class="sidebar w-64 text-white flex flex-col fixed h-screen overflow-y-auto scrollbar-thin">
+<div id="mobileOverlay" class="mobile-overlay fixed inset-0 bg-slate-900/50 z-30" onclick="closeMobileMenu()"></div>
+<aside id="mainSidebar" class="sidebar w-64 text-white flex flex-col fixed h-screen overflow-y-auto scrollbar-thin">
   <div class="p-5 border-b border-white/10">
     <div class="flex items-center gap-3">
       <div class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center font-bold">เอก</div>
@@ -85,10 +108,13 @@ $activePage = $activePage ?? '';
 </aside>
 
 <main class="main-content">
-  <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
-    <div>
-      <div class="text-xs text-slate-500"><?= $breadcrumb ?? 'จัดการงานบริการ' ?></div>
-      <h1 class="text-xl font-bold text-slate-800"><?= $pageTitle ?? 'Dashboard' ?></h1>
+  <header class="bg-white border-b border-slate-200 px-4 md:px-8 py-3 md:py-4 flex items-center justify-between sticky top-0 z-20">
+    <div class="flex items-center gap-3 min-w-0">
+      <button type="button" class="mobile-menu-button items-center justify-center rounded-lg border border-slate-300 p-2 text-slate-700" onclick="openMobileMenu()" aria-label="เปิดเมนู">☰</button>
+      <div class="min-w-0">
+        <div class="text-xs text-slate-500 truncate"><?= $breadcrumb ?? 'จัดการงานบริการ' ?></div>
+        <h1 class="text-lg md:text-xl font-bold text-slate-800 truncate"><?= $pageTitle ?? 'Dashboard' ?></h1>
+      </div>
     </div>
     <div class="flex items-center gap-3 pl-4 border-l border-slate-200">
       <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-900 to-blue-700 text-white flex items-center justify-center font-bold"><?= mb_substr($me['name'], 0, 1) ?></div>
@@ -98,4 +124,4 @@ $activePage = $activePage ?? '';
       </div>
     </div>
   </header>
-  <div class="p-8">
+  <div class="page-content p-8">
