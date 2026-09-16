@@ -5,6 +5,8 @@ define('DB_NAME', 'ekservice_db');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_CHARSET', 'utf8mb4');
+define('LINE_LIFF_ID', '2011627827-2s8sq190');
+define('LINE_CHANNEL_ID', '2011627827');
 
 try {
     $pdo = new PDO(
