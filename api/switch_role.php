@@ -12,7 +12,8 @@ if (!isset($availableRoles[$role])) {
 $_SESSION['user_id'] = $availableRoles[$role]['user_id'];
 $_SESSION['role'] = $role;
 $_SESSION['auth_method'] = 'line';
-$_SESSION['user_name'] = $_SESSION['line_display_name'] ?? $availableRoles[$role]['name'];
+// ใช้ชื่อของบทบาทที่สลับไป ไม่ใช้ Display Name จาก LINE
+$_SESSION['user_name'] = $availableRoles[$role]['name'];
 
 $redirect = match ($role) {
     'owner' => '/web_app/owner/dashboard.php',
