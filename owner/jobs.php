@@ -33,7 +33,7 @@ $statusClass = [
 <div class="card p-6">
   <form method="GET" class="flex items-center justify-between mb-5 flex-wrap gap-3">
     <div class="flex items-center gap-3 flex-wrap">
-      <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="ค้นหาเลขงาน, ชื่อลูกค้า..." class="px-4 py-2 border border-slate-300 rounded-lg w-72 text-sm outline-none" />
+      <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="ค้นหาเลขงาน, ชื่อลูกค้า..." class="px-4 py-2 border border-slate-300 rounded-lg w-full sm:w-72 text-sm outline-none" />
       <select name="status" class="px-4 py-2 border border-slate-300 rounded-lg text-sm">
         <option value="">ทุกสถานะ</option>
         <option <?= $status==='รอรับงาน'?'selected':'' ?>>รอรับงาน</option>
