@@ -53,7 +53,7 @@ $services  = $pdo->query("SELECT * FROM Services WHERE status = 'เปิดใ
 $techs     = $pdo->query("SELECT * FROM Technician WHERE status = 'ว่าง'")->fetchAll();
 ?>
 
-<div class="card p-6">
+<div class="card p-3 sm:p-6 overflow-hidden">
   <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
     <div class="flex items-center gap-3">
       <a href="?m=<?= $month-1 ?>&y=<?= $month===1?$year-1:$year ?>" class="p-2 rounded-lg hover:bg-slate-100">◀</a>
@@ -61,7 +61,7 @@ $techs     = $pdo->query("SELECT * FROM Technician WHERE status = 'ว่าง'
       <a href="?m=<?= $month+1 ?>&y=<?= $month===12?$year+1:$year ?>" class="p-2 rounded-lg hover:bg-slate-100">▶</a>
       <a href="?m=<?= date('n') ?>&y=<?= date('Y') ?>" class="ml-2 px-3 py-1.5 text-sm btn-outline rounded-lg no-underline">วันนี้</a>
     </div>
-    <button onclick="openModal('newBookingModal')" class="btn-accent px-4 py-2 rounded-lg text-sm font-semibold">+ สร้างงานบริการใหม่</button>
+    <button onclick="openModal('newBookingModal')" class="btn-accent px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap">+ สร้างงานบริการใหม่</button>
   </div>
 
   <div class="grid grid-cols-7 gap-1 mb-2">
