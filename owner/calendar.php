@@ -24,6 +24,15 @@ foreach ($bookings as $b) {
   $eventsByDay[$day][] = $b;
 }
 
+$statusClass = [
+  'รอรับงาน' => 'status-pending',
+  'รับงานแล้ว' => 'status-progress',
+  'กำลังเดินทาง' => 'status-progress',
+  'กำลังซ่อม' => 'status-progress',
+  'เสร็จสิ้น' => 'status-done',
+  'ยกเลิก' => 'status-cancel'
+];
+
 // Handle new booking
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'new_booking') {
     $stmt = $pdo->prepare("INSERT INTO Booking (customer_id, service_id, tech_id_1, booking_date, booking_time, problem_description) VALUES (?, ?, ?, ?, ?, ?)");
@@ -79,7 +88,7 @@ $techs     = $pdo->query("SELECT * FROM Technician WHERE status = 'ว่าง'
       <div class="calendar-cell <?= $isToday ? 'today' : '' ?> p-2">
         <div class="text-xs font-semibold <?= $isToday ? 'text-blue-900' : 'text-slate-700' ?>"><?= $d ?></div>
         <?php foreach ($dayEvents as $e): ?>
-          <a href="owner_job_detail.php?id=<?= (int)$e['booking_id'] ?>" class="calendar-event <?= htmlspecialchars($e['status_class']) ?> block no-underline">
+          <a href="job_detail.php?id=<?= (int)$e['booking_id'] ?>" class="calendar-event <?= $statusClass[$e['status_service']] ?? 'status-pending' ?> block no-underline">
             <span class="block font-semibold">#<?= (int)$e['booking_id'] ?> <?= htmlspecialchars(mb_substr($e['customer'], 0, 12)) ?></span>
             <span class="block text-[10px] opacity-90"><?= htmlspecialchars($e['status_service']) ?></span>
           </a>
