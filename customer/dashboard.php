@@ -36,17 +36,37 @@ $roleLabel = $user['role'] === 'technician' ? 'พนักงาน/ช่า�
     <span class="mt-3 inline-block rounded-full bg-blue-100 px-3 py-1 text-sm text-blue-800">บทบาท: <?= htmlspecialchars($roleLabel) ?></span>
   </div>
 
+  <div class="mb-5 grid gap-5 sm:grid-cols-2">
+    <a href="/web_app/customer/new_booking.php" class="rounded-2xl bg-red-600 p-6 text-white shadow hover:bg-red-700">
+      <div class="mb-2 text-2xl">🛠️</div>
+      <h2 class="font-bold">ขอรับบริการ</h2>
+      <p class="text-sm text-white/80">สร้างคำขอและเลือกวันเวลานัดหมาย</p>
+    </a>
+    <a href="/web_app/customer/jobs.php" class="rounded-2xl bg-blue-900 p-6 text-white shadow hover:bg-blue-800">
+      <div class="mb-2 text-2xl">📋</div>
+      <h2 class="font-bold">งานของฉัน</h2>
+      <p class="text-sm text-white/80">ติดตามสถานะงานและประวัติบริการ</p>
+    </a>
+    <a href="/web_app/customer/upload_payment.php" class="rounded-2xl bg-white p-6 shadow hover:shadow-lg">
+      <div class="mb-2 text-2xl">💳</div>
+      <h2 class="font-bold text-slate-800">ส่งสลิปชำระเงิน</h2>
+      <p class="text-sm text-slate-500">แนบหลักฐานการโอนเงิน</p>
+    </a>
+  </div>
+
   <div class="grid gap-5 md:grid-cols-3">
     <a href="/web_app/user/profile.php" class="rounded-2xl bg-white p-6 shadow hover:shadow-lg">
       <div class="mb-2 text-2xl">👤</div>
       <h2 class="font-bold text-slate-800">ข้อมูลส่วนตัว</h2>
       <p class="text-sm text-slate-500">ดูและแก้ไขข้อมูลของคุณ</p>
     </a>
+    <?php if (($user['auth_method'] ?? 'password') !== 'line'): ?>
     <a href="/web_app/user/change_password.php" class="rounded-2xl bg-white p-6 shadow hover:shadow-lg">
       <div class="mb-2 text-2xl">🔑</div>
       <h2 class="font-bold text-slate-800">เปลี่ยนรหัสผ่าน</h2>
       <p class="text-sm text-slate-500">ตั้งรหัสผ่านใหม่ของคุณ</p>
     </a>
+    <?php endif; ?>
     <a href="/web_app/api/logout.php" class="rounded-2xl bg-white p-6 shadow hover:shadow-lg">
       <div class="mb-2 text-2xl">🚪</div>
       <h2 class="font-bold text-slate-800">ออกจากระบบ</h2>
