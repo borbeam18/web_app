@@ -30,6 +30,7 @@ function currentUser(): array
         'id' => $_SESSION['user_id'] ?? null,
         'role' => $_SESSION['role'] ?? null,
         'name' => $_SESSION['user_name'] ?? '',
+        'auth_method' => $_SESSION['auth_method'] ?? 'password',
     ];
 }
 
@@ -38,7 +39,7 @@ function redirectToRoleHome(): void
     $map = [
         'admin' => '/web_app/admin/users.php',
         'owner' => '/web_app/owner/dashboard.php',
-        'technician' => '/web_app/customer/dashboard.php',
+        'technician' => '/web_app/technician/dashboard.php',
         'customer' => '/web_app/customer/dashboard.php',
     ];
     $role = $_SESSION['role'] ?? '';
