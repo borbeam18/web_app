@@ -13,6 +13,28 @@ function requireLogin(): void
         header('Location: /web_app/user/login.php');
         exit;
     }
+
+    $roleTables = [
+        'admin' => ['table' => 'Admin', 'id' => 'admin_id'],
+        'owner' => ['table' => 'Owner', 'id' => 'owner_id'],
+        'technician' => ['table' => 'Technician', 'id' => 'tech_id'],
+        'customer' => ['table' => 'Customer', 'id' => 'customer_id'],
+    ];
+    $role = $_SESSION['role'];
+    if (!isset($roleTables[$role])) {
+        $_SESSION = [];
+        header('Location: /web_app/user/login.php');
+        exit;
+    }
+
+    $source = $roleTables[$role];
+    $stmt = $GLOBALS['pdo']->prepare("SELECT 1 FROM {$source['table']} WHERE {$source['id']} = ?");
+    $stmt->execute([(int)$_SESSION['user_id']]);
+    if (!$stmt->fetchColumn()) {
+        $_SESSION = [];
+        header('Location: /web_app/user/login.php');
+        exit;
+    }
 }
 
 function requireRole(string ...$roles): void
