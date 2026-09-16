@@ -52,16 +52,14 @@ try {
             ],
         ];
 
-        // ถ้า Owner มีบัญชีช่างที่ผูกกับ LINE ID เดียวกัน ให้สลับเป็นช่างได้
-        if (!empty($user['line_user_id'])) {
-            $techStmt = $pdo->prepare('SELECT tech_id, full_name FROM Technician WHERE line_user_id = ?');
-            $techStmt->execute([$user['line_user_id']]);
-            if ($technician = $techStmt->fetch()) {
-                $_SESSION['available_roles']['technician'] = [
-                    'user_id' => (int)$technician['tech_id'],
-                    'name' => $technician['full_name'],
-                ];
-            }
+        // Owner ที่มีพนักงานของตัวเอง สามารถสลับไปหน้าพนักงานได้
+        $techStmt = $pdo->prepare('SELECT tech_id, full_name FROM Technician WHERE owner_id = ? LIMIT 1');
+        $techStmt->execute([(int)$user['owner_id']]);
+        if ($technician = $techStmt->fetch()) {
+            $_SESSION['available_roles']['technician'] = [
+                'user_id' => (int)$technician['tech_id'],
+                'name' => $technician['full_name'],
+            ];
         }
 
         echo json_encode([
