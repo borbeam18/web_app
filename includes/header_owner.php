@@ -2,6 +2,20 @@
 require_once __DIR__ . '/auth.php';
 requireRole('owner'); // ต้องเป็น owner เท่านั้น
 $me = currentUser();
+
+// โหลดสิทธิ์พนักงานจากฐานข้อมูล เพื่อรองรับ Session เก่าหรือการผูกภายหลัง
+if (!isset($_SESSION['available_roles']['technician'])) {
+    $techStmt = $pdo->prepare('SELECT tech_id, full_name FROM Technician WHERE owner_id = ? LIMIT 1');
+    $techStmt->execute([(int)$_SESSION['user_id']]);
+    if ($technician = $techStmt->fetch()) {
+        $_SESSION['available_roles']['technician'] = [
+            'user_id' => (int)$technician['tech_id'],
+            'name' => $technician['full_name'],
+        ];
+    }
+}
+
+$me = currentUser();
 $activePage = $activePage ?? '';
 ?>
 <!DOCTYPE html>
